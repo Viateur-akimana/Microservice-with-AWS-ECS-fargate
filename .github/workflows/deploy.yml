@@ -54,7 +54,7 @@ jobs:
           docker push $ECR_REGISTRY/${{ env.PROJECT_NAME }}/${{ matrix.service }}:$IMAGE_TAG
           docker push $ECR_REGISTRY/${{ env.PROJECT_NAME }}/${{ matrix.service }}:latest
 
-          echo "✅ Built and pushed: ${{ matrix.service }}:$IMAGE_TAG"
+          echo "Built and pushed: ${{ matrix.service }}:$IMAGE_TAG"
 
       - name: Deploy to ECS
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -77,7 +77,7 @@ jobs:
             --services ${{ matrix.service }} \
             --region ${{ env.AWS_REGION }}
 
-          echo "✅ ${{ matrix.service }} deployed successfully!"
+          echo " ${{ matrix.service }} deployed successfully!"
 
   verify:
     name: Verify Deployment
@@ -103,30 +103,30 @@ jobs:
             --region ${{ env.AWS_REGION }})
 
           if [ -z "$ALB_DNS" ]; then
-            echo "⚠️ Could not find ALB, skipping health check"
+            echo "Could not find ALB, skipping health check"
             exit 0
           fi
 
           ALB_URL="http://${ALB_DNS}"
-          echo "🏥 Testing: ${ALB_URL}/health"
+          echo " Testing: ${ALB_URL}/health"
 
           # Try health check (with retries)
           for i in {1..10}; do
             if curl -f -s "${ALB_URL}/health" > /dev/null 2>&1; then
-              echo "✅ Health check passed!"
-              echo "🌐 Application URL: ${ALB_URL}"
+              echo " Health check passed!"
+              echo " Application URL: ${ALB_URL}"
               exit 0
             fi
-            echo "⏳ Attempt $i/10 - waiting..."
+            echo " Attempt $i/10 - waiting..."
             sleep 15
           done
 
-          echo "⚠️ Health check timeout (services may still be starting)"
+          echo " Health check timeout (services may still be starting)"
           exit 0
 
       - name: Deployment summary
         run: |
-          echo "## ✅ Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "##  Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Environment:** ${{ env.ENVIRONMENT }}" >> $GITHUB_STEP_SUMMARY
           echo "**Region:** ${{ env.AWS_REGION }}" >> $GITHUB_STEP_SUMMARY
