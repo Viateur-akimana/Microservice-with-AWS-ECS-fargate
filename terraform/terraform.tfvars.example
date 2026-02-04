@@ -1,0 +1,17 @@
+# Example Terraform Variables
+# Copy this file to terraform.tfvars and customize for your environment
+
+# AWS Configuration
+aws_region   = "us-east-1"
+project_name = "fastapi-microservices"
+environment  = "dev"
+
+# Network Configuration
+vpc_cidr = "10.0.0.0/16"
+
+# Database Configuration
+db_name     = "microservices_db"
+db_username = "dbadmin"
+
+# Microservices
+services = ["user-service", "order-service", "payment-service"]
