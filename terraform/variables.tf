@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "project_name" {
   description = "Project name"
   type        = string
-  default     = "terraflow-ecs"
+  default     = "fastapi-microservices"
 }
 
 variable "environment" {
