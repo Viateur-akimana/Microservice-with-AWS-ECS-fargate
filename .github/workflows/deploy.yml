@@ -1,0 +1,86 @@
+name: Deploy to ECS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "services/**"
+      - ".github/workflows/deploy.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "services/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  PROJECT_NAME: ${{ vars.PROJECT_NAME }}
+  ENVIRONMENT: ${{ vars.ENVIRONMENT }}
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJson(vars.SERVICES) }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          cd services/${{ matrix.service }}
+
+          # Build image
+          docker build -t $ECR_REGISTRY/${{ env.PROJECT_NAME }}/${{ matrix.service }}:$IMAGE_TAG .
+          docker tag $ECR_REGISTRY/${{ env.PROJECT_NAME }}/${{ matrix.service }}:$IMAGE_TAG \
+                     $ECR_REGISTRY/${{ env.PROJECT_NAME }}/${{ matrix.service }}:latest
+
+          # Push both tags
+          docker push $ECR_REGISTRY/${{ env.PROJECT_NAME }}/${{ matrix.service }}:$IMAGE_TAG
+          docker push $ECR_REGISTRY/${{ env.PROJECT_NAME }}/${{ matrix.service }}:latest
+
+          echo "Built and pushed: ${{ matrix.service }}:$IMAGE_TAG"
+
+      - name: Deploy to ECS
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          CLUSTER_NAME="${{ env.PROJECT_NAME }}-${{ env.ENVIRONMENT }}-cluster"
+
+          echo "Deploying ${{ matrix.service }} to $CLUSTER_NAME..."
+
+          aws ecs update-service \
+            --cluster $CLUSTER_NAME \
+            --service ${{ matrix.service }} \
+            --force-new-deployment \
+            --region ${{ env.AWS_REGION }} \
+            --no-cli-pager
+            
+          echo "Waiting for stability..."
+
+          aws ecs wait services-stable \
+            --cluster $CLUSTER_NAME \
+            --services ${{ matrix.service }} \
+            --region ${{ env.AWS_REGION }}
+            
+          echo " ${{ matrix.service }} deployed successfully!"

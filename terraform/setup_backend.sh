@@ -1,16 +1,27 @@
 #!/bin/bash
 set -e
 
-REGION="us-east-1"
-BUCKET_NAME="fastapi-microservices-terraform-state"
-DYNAMODB_TABLE="fastapi-microservices-terraform-locks"
+# Configuration
+PROJECT_NAME="fastapi-microservices"
+ENVIRONMENT="prod"
+REGION=$(aws configure get region)
+# Default to eu-north-1 if aws configure is empty
+if [ -z "$REGION" ]; then
+    REGION="eu-north-1"
+fi
 
-echo "Creating S3 bucket: $BUCKET_NAME in $REGION..."
+BUCKET_NAME="${PROJECT_NAME}-${ENVIRONMENT}-terraform-state"
+DYNAMODB_TABLE="${PROJECT_NAME}-${ENVIRONMENT}-terraform-locks"
+
+echo "Using Region: $REGION"
+echo "Creating S3 bucket: $BUCKET_NAME"
+echo "Creating DynamoDB table: $DYNAMODB_TABLE"
 
 # Check if bucket exists
 if aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
     echo "Bucket $BUCKET_NAME already exists."
 else
+    echo "Creating bucket..."
     # Create bucket (us-east-1 does not explicitly require LocationConstraint)
     if [ "$REGION" == "us-east-1" ]; then
         aws s3api create-bucket --bucket "$BUCKET_NAME" --region "$REGION"

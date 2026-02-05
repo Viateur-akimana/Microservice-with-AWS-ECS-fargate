@@ -12,8 +12,15 @@ on:
   workflow_dispatch:
 
 env:
-  AWS_REGION: us-east-1
+  AWS_REGION: ${{ vars.AWS_REGION }}
   TF_WORKING_DIR: "./terraform"
+  TF_VAR_aws_region: ${{ vars.AWS_REGION }}
+  TF_VAR_project_name: ${{ vars.PROJECT_NAME }}
+  TF_VAR_environment: ${{ vars.ENVIRONMENT }}
+  TF_VAR_vpc_cidr: ${{ vars.VPC_CIDR }}
+  TF_VAR_db_name: ${{ vars.DB_NAME }}
+  TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
+  TF_VAR_services: ${{ vars.SERVICES }}
 
 jobs:
   terraform:
