@@ -49,6 +49,10 @@ module "compute" {
   # Security
   ecs_security_group_id = module.security.ecs_security_group_id
 
+  # IAM Roles
+  ecs_task_execution_role_arn = module.security.ecs_task_execution_role_arn
+  ecs_task_role_arn           = module.security.ecs_task_role_arn
+
   # Data layer endpoints
   rds_endpoint   = module.data.rds_endpoint
   redis_endpoint = module.data.redis_endpoint

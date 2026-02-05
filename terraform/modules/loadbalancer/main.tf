@@ -17,7 +17,7 @@ resource "aws_lb" "main" {
 
 # Default Target Group
 resource "aws_lb_target_group" "default" {
-  name        = "${var.project_name}-${var.environment}-default-tg"
+  name        = substr("${var.project_name}-${var.environment}-default-tg", 0, 32)
   port        = 8000
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
@@ -46,7 +46,7 @@ resource "aws_lb_target_group" "default" {
 resource "aws_lb_target_group" "services" {
   for_each = toset(var.services)
 
-  name        = "${var.project_name}-${var.environment}-${each.key}-tg"
+  name        = substr("${var.project_name}-${var.environment}-${each.key}-tg", 0, 32)
   port        = 8000
   protocol    = "HTTP"
   vpc_id      = var.vpc_id

@@ -1,11 +1,4 @@
-# Get IAM roles from security module
-data "aws_iam_role" "ecs_task_execution_role" {
-  name = "${var.project_name}-${var.environment}-ecs-task-execution-role"
-}
 
-data "aws_iam_role" "ecs_task_role" {
-  name = "${var.project_name}-${var.environment}-ecs-task-role"
-}
 
 # ECS Cluster (Application Tier)
 resource "aws_ecs_cluster" "main" {
