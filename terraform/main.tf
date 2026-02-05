@@ -1,24 +1,6 @@
 # Root Terraform Configuration
 # This is the main entry point that orchestrates all modules
 
-terraform {
-  required_version = ">= 1.0"
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.0"
-    }
-  }
-}
-
-provider "aws" {
-  region = var.aws_region
-}
-
 # Tier 1: Networking Layer
 module "networking" {
   source = "./modules/networking"
