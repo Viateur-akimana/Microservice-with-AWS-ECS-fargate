@@ -16,12 +16,18 @@ resource "random_password" "db_password" {
   special = true
 }
 
+# Get latest available PostgreSQL version
+data "aws_rds_engine_version" "postgres" {
+  engine             = "postgres"
+  preferred_versions = ["15.7", "15.6", "15.5", "15.4", "15"]
+}
+
 # RDS PostgreSQL Instance (Data Tier)
 resource "aws_db_instance" "postgres" {
   identifier = "${var.project_name}-${var.environment}-postgres"
 
-  engine         = "postgres"
-  engine_version = "16"
+  engine         = data.aws_rds_engine_version.postgres.engine
+  engine_version = data.aws_rds_engine_version.postgres.version
   instance_class = "db.t3.micro"
 
   allocated_storage     = 20
